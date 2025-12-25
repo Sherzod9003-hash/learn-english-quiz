@@ -30,6 +30,7 @@ export default function QuizPage() {
   const [mode, setMode] = useState<QuizMode>('en-uz');
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [options, setOptions] = useState<string[]>([]);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
@@ -37,6 +38,7 @@ export default function QuizPage() {
   const [quizFinished, setQuizFinished] = useState(false);
 
   const generateQuestion = () => {
+    setSelectedOption(null);
     setSelectedAnswer(null);
     setIsCorrect(null);
 
@@ -68,14 +70,20 @@ export default function QuizPage() {
     }
   }, [mode]);
 
-  const handleAnswer = (answer: string) => {
+  const selectOption = (option: string) => {
     if (selectedAnswer) return;
+    setSelectedOption(option);
+  };
 
-    setSelectedAnswer(answer);
+  const confirmAnswer = () => {
+    if (!selectedOption) return;
+
     const correctAnswer = mode === 'en-uz' ? currentWord?.uz : currentWord?.en;
-    const correct = answer === correctAnswer;
+    const correct = selectedOption === correctAnswer;
     
+    setSelectedAnswer(selectedOption);
     setIsCorrect(correct);
+    
     const newScore = { 
       correct: score.correct + (correct ? 1 : 0), 
       total: score.total + 1 
@@ -87,6 +95,10 @@ export default function QuizPage() {
         setQuizFinished(true);
       }, 1500);
     }
+  };
+
+  const cancelSelection = () => {
+    setSelectedOption(null);
   };
 
   const nextQuestion = () => {
@@ -101,6 +113,7 @@ export default function QuizPage() {
     setScore({ correct: 0, total: 0 });
     setUsedWords([]);
     setQuizFinished(false);
+    setSelectedOption(null);
     setSelectedAnswer(null);
     setIsCorrect(null);
     setCurrentWord(null);
@@ -115,6 +128,7 @@ export default function QuizPage() {
     setScore({ correct: 0, total: 0 });
     setUsedWords([]);
     setQuizFinished(false);
+    setSelectedOption(null);
     setSelectedAnswer(null);
     setIsCorrect(null);
     setCurrentWord(null);
@@ -253,27 +267,35 @@ export default function QuizPage() {
 
           <div className="grid grid-cols-1 gap-2 md:gap-3">
             {options.map((option, index) => {
-              const isSelected = selectedAnswer === option;
+              const isSelected = selectedOption === option;
+              const isFinalAnswer = selectedAnswer === option;
               const isCorrectOption = option === correctAnswer;
               
               let className = 'w-full py-3 md:py-4 px-4 md:px-6 rounded-xl font-semibold text-sm md:text-lg transition-all border-2 ';
               
-              if (!selectedAnswer) {
-                className += 'bg-gray-50 border-gray-200 hover:bg-indigo-50 hover:border-indigo-300 cursor-pointer active:scale-98';
-              } else if (isSelected && isCorrect) {
-                className += 'bg-green-100 border-green-500 text-green-800';
-              } else if (isSelected && !isCorrect) {
-                className += 'bg-red-100 border-red-500 text-red-800';
-              } else if (isCorrectOption) {
-                className += 'bg-green-100 border-green-500 text-green-800';
+              if (selectedAnswer) {
+                // Javob berilgan
+                if (isFinalAnswer && isCorrect) {
+                  className += 'bg-green-100 border-green-500 text-green-800';
+                } else if (isFinalAnswer && !isCorrect) {
+                  className += 'bg-red-100 border-red-500 text-red-800';
+                } else if (isCorrectOption) {
+                  className += 'bg-green-100 border-green-500 text-green-800';
+                } else {
+                  className += 'bg-gray-50 border-gray-200 opacity-50';
+                }
+              } else if (isSelected) {
+                // Tanlangan, lekin hali tasdiqlanmagan
+                className += 'bg-yellow-100 border-yellow-500 text-yellow-900 scale-105';
               } else {
-                className += 'bg-gray-50 border-gray-200 opacity-50';
+                // Oddiy holat
+                className += 'bg-gray-50 border-gray-200 hover:bg-indigo-50 hover:border-indigo-300 cursor-pointer active:scale-98';
               }
 
               return (
                 <button
                   key={index}
-                  onClick={() => handleAnswer(option)}
+                  onClick={() => selectOption(option)}
                   disabled={selectedAnswer !== null}
                   className={className}
                 >
@@ -281,14 +303,34 @@ export default function QuizPage() {
                     {String.fromCharCode(65 + index)})
                   </span>
                   {option}
-                  {isSelected && isCorrect && ' ✅'}
-                  {isSelected && !isCorrect && ' ❌'}
-                  {!isSelected && isCorrectOption && selectedAnswer && ' ✅'}
+                  {isFinalAnswer && isCorrect && ' ✅'}
+                  {isFinalAnswer && !isCorrect && ' ❌'}
+                  {!isFinalAnswer && isCorrectOption && selectedAnswer && ' ✅'}
+                  {isSelected && !selectedAnswer && ' 👈'}
                 </button>
               );
             })}
           </div>
 
+          {/* Tasdiqlash tugmalari */}
+          {selectedOption && !selectedAnswer && (
+            <div className="mt-4 md:mt-6 flex gap-3">
+              <button
+                onClick={confirmAnswer}
+                className="flex-1 bg-green-600 text-white py-3 md:py-4 px-4 md:px-6 rounded-xl font-bold text-sm md:text-base hover:bg-green-700 transition-all shadow-lg active:scale-95"
+              >
+                ✅ Tasdiqlash
+              </button>
+              <button
+                onClick={cancelSelection}
+                className="flex-1 bg-gray-300 text-gray-700 py-3 md:py-4 px-4 md:px-6 rounded-xl font-bold text-sm md:text-base hover:bg-gray-400 transition-all active:scale-95"
+              >
+                ❌ Bekor qilish
+              </button>
+            </div>
+          )}
+
+          {/* Natija */}
           {selectedAnswer && (
             <div className="mt-4 md:mt-6 text-center">
               {isCorrect ? (
