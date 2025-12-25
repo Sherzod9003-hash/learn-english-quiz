@@ -144,41 +144,41 @@ export default function QuizPage() {
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">
-        <div className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8 md:p-12 text-center">
-          <div className="text-8xl mb-6">{emoji}</div>
-          <h1 className="text-4xl font-bold mb-4 text-indigo-900">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 md:p-6">
+        <div className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-6 md:p-12 text-center">
+          <div className="text-6xl md:text-8xl mb-4 md:mb-6">{emoji}</div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-3 md:mb-4 text-indigo-900">
             Quiz tugadi!
           </h1>
-          <p className="text-xl text-gray-600 mb-8">{message}</p>
+          <p className="text-lg md:text-xl text-gray-600 mb-6 md:mb-8">{message}</p>
           
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-8 mb-8">
-            <div className="grid md:grid-cols-3 gap-6">
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 md:p-8 mb-6 md:mb-8">
+            <div className="grid grid-cols-3 gap-4 md:gap-6">
               <div>
-                <div className="text-4xl font-bold text-indigo-600">{score.correct}</div>
-                <div className="text-gray-600 mt-2">To&apos;g&apos;ri javoblar</div>
+                <div className="text-3xl md:text-4xl font-bold text-indigo-600">{score.correct}</div>
+                <div className="text-xs md:text-base text-gray-600 mt-1 md:mt-2">To&apos;g&apos;ri</div>
               </div>
               <div>
-                <div className="text-4xl font-bold text-red-600">{score.total - score.correct}</div>
-                <div className="text-gray-600 mt-2">Xato javoblar</div>
+                <div className="text-3xl md:text-4xl font-bold text-red-600">{score.total - score.correct}</div>
+                <div className="text-xs md:text-base text-gray-600 mt-1 md:mt-2">Xato</div>
               </div>
               <div>
-                <div className="text-4xl font-bold text-purple-600">{percentage}%</div>
-                <div className="text-gray-600 mt-2">Natija</div>
+                <div className="text-3xl md:text-4xl font-bold text-purple-600">{percentage}%</div>
+                <div className="text-xs md:text-base text-gray-600 mt-1 md:mt-2">Natija</div>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col gap-3 md:gap-4">
             <button
               onClick={restartQuiz}
-              className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all hover:scale-105 shadow-lg"
+              className="w-full bg-indigo-600 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-base md:text-lg hover:bg-indigo-700 transition-all hover:scale-105 shadow-lg active:scale-95"
             >
               🔄 Qayta boshlash
             </button>
             <Link
               href="/"
-              className="bg-gray-200 text-gray-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-300 transition-all hover:scale-105 inline-block"
+              className="w-full bg-gray-200 text-gray-700 px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-base md:text-lg hover:bg-gray-300 transition-all hover:scale-105 inline-block active:scale-95"
             >
               🏠 Bosh sahifa
             </Link>
@@ -194,17 +194,17 @@ export default function QuizPage() {
   const correctAnswer = mode === 'en-uz' ? currentWord.uz : currentWord.en;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-6 pb-6">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6 mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-center mb-6 text-indigo-900">
+        <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
+          <h1 className="text-xl md:text-3xl font-bold text-center mb-4 md:mb-6 text-indigo-900">
             🎓 Ingliz tili Quiz
           </h1>
           
-          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row gap-2 md:gap-3 mb-3 md:mb-4">
             <button
               onClick={() => changeMode('en-uz')}
-              className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all text-sm md:text-base ${
+              className={`flex-1 py-2.5 md:py-3 px-3 md:px-4 rounded-xl font-semibold transition-all text-xs md:text-base ${
                 mode === 'en-uz'
                   ? 'bg-indigo-600 text-white shadow-lg scale-105'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -214,7 +214,7 @@ export default function QuizPage() {
             </button>
             <button
               onClick={() => changeMode('uz-en')}
-              className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all text-sm md:text-base ${
+              className={`flex-1 py-2.5 md:py-3 px-3 md:px-4 rounded-xl font-semibold transition-all text-xs md:text-base ${
                 mode === 'uz-en'
                   ? 'bg-indigo-600 text-white shadow-lg scale-105'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -224,7 +224,7 @@ export default function QuizPage() {
             </button>
           </div>
 
-          <div className="flex justify-between items-center text-sm mb-2">
+          <div className="flex justify-between items-center text-xs md:text-sm mb-2">
             <div className="text-gray-600">
               Savol: <span className="font-bold text-indigo-600">{score.total + 1}/{MAX_QUESTIONS}</span>
             </div>
@@ -241,25 +241,25 @@ export default function QuizPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6">
-          <div className="text-center mb-8">
-            <p className="text-sm text-gray-500 mb-2">
+        <div className="bg-white rounded-2xl shadow-lg p-4 md:p-8 mb-4 md:mb-6">
+          <div className="text-center mb-6 md:mb-8">
+            <p className="text-xs md:text-sm text-gray-500 mb-2">
               {mode === 'en-uz' ? 'Tarjima qiling:' : 'Translate:'}
             </p>
-            <h2 className="text-4xl md:text-5xl font-bold text-indigo-900 mb-2">
+            <h2 className="text-3xl md:text-5xl font-bold text-indigo-900 mb-2">
               {question}
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 gap-2 md:gap-3">
             {options.map((option, index) => {
               const isSelected = selectedAnswer === option;
               const isCorrectOption = option === correctAnswer;
               
-              let className = 'w-full py-4 px-6 rounded-xl font-semibold text-base md:text-lg transition-all border-2 ';
+              let className = 'w-full py-3 md:py-4 px-4 md:px-6 rounded-xl font-semibold text-sm md:text-lg transition-all border-2 ';
               
               if (!selectedAnswer) {
-                className += 'bg-gray-50 border-gray-200 hover:bg-indigo-50 hover:border-indigo-300 hover:scale-102 cursor-pointer';
+                className += 'bg-gray-50 border-gray-200 hover:bg-indigo-50 hover:border-indigo-300 cursor-pointer active:scale-98';
               } else if (isSelected && isCorrect) {
                 className += 'bg-green-100 border-green-500 text-green-800';
               } else if (isSelected && !isCorrect) {
@@ -277,7 +277,7 @@ export default function QuizPage() {
                   disabled={selectedAnswer !== null}
                   className={className}
                 >
-                  <span className="mr-3 text-gray-400 font-bold">
+                  <span className="mr-2 md:mr-3 text-gray-400 font-bold">
                     {String.fromCharCode(65 + index)})
                   </span>
                   {option}
@@ -290,19 +290,19 @@ export default function QuizPage() {
           </div>
 
           {selectedAnswer && (
-            <div className="mt-6 text-center">
+            <div className="mt-4 md:mt-6 text-center">
               {isCorrect ? (
-                <div className="text-green-600 font-semibold text-lg">
+                <div className="text-green-600 font-semibold text-base md:text-lg mb-3 md:mb-4">
                   🎉 To&apos;g&apos;ri! Ajoyib!
                 </div>
               ) : (
-                <div className="text-red-600 font-semibold text-lg">
-                  ❌ Noto&apos;g&apos;ri. To&apos;g&apos;ri javob: <span className="text-green-600">{correctAnswer}</span>
+                <div className="text-red-600 font-semibold text-sm md:text-lg mb-3 md:mb-4">
+                  ❌ Noto&apos;g&apos;ri. To&apos;g&apos;ri: <span className="text-green-600">{correctAnswer}</span>
                 </div>
               )}
               <button
                 onClick={nextQuestion}
-                className="mt-4 bg-indigo-600 text-white py-3 px-8 rounded-xl font-semibold hover:bg-indigo-700 transition-all shadow-lg hover:scale-105"
+                className="w-full bg-indigo-600 text-white py-3.5 md:py-4 px-6 md:px-8 rounded-xl font-bold text-base md:text-lg hover:bg-indigo-700 transition-all shadow-lg active:scale-95"
               >
                 {score.total >= MAX_QUESTIONS - 1 ? 'Natijani ko\'rish →' : 'Keyingi savol →'}
               </button>
