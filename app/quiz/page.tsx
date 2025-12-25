@@ -24,7 +24,7 @@ const WORDS: Word[] = [
   { id: 10, en: 'Car', uz: 'Mashina' },
 ];
 
-const MAX_QUESTIONS = 10; // Maksimal savollar soni
+const MAX_QUESTIONS = 10;
 
 export default function QuizPage() {
   const [mode, setMode] = useState<QuizMode>('en-uz');
@@ -40,7 +40,6 @@ export default function QuizPage() {
     setSelectedAnswer(null);
     setIsCorrect(null);
 
-    // Ishlatilmagan so'zlardan tanlash
     const availableWords = WORDS.filter(w => !usedWords.includes(w.id));
     
     if (availableWords.length === 0) {
@@ -52,7 +51,6 @@ export default function QuizPage() {
     setCurrentWord(word);
     setUsedWords([...usedWords, word.id]);
 
-    // 4 ta variant yaratish
     const correctAnswer = mode === 'en-uz' ? word.uz : word.en;
     const incorrectOptions = WORDS
       .filter(w => w.id !== word.id)
@@ -65,7 +63,9 @@ export default function QuizPage() {
   };
 
   useEffect(() => {
-    generateQuestion();
+    if (!quizFinished && usedWords.length === 0) {
+      generateQuestion();
+    }
   }, [mode]);
 
   const handleAnswer = (answer: string) => {
@@ -82,9 +82,10 @@ export default function QuizPage() {
     };
     setScore(newScore);
 
-    // 10 ta savoldan keyin tugatish
     if (newScore.total >= MAX_QUESTIONS) {
-      setQuizFinished(true);
+      setTimeout(() => {
+        setQuizFinished(true);
+      }, 1500);
     }
   };
 
@@ -100,12 +101,31 @@ export default function QuizPage() {
     setScore({ correct: 0, total: 0 });
     setUsedWords([]);
     setQuizFinished(false);
-    generateQuestion();
+    setSelectedAnswer(null);
+    setIsCorrect(null);
+    setCurrentWord(null);
+    
+    setTimeout(() => {
+      generateQuestion();
+    }, 100);
   };
 
-  // Natija sahifasi
+  const changeMode = (newMode: QuizMode) => {
+    setMode(newMode);
+    setScore({ correct: 0, total: 0 });
+    setUsedWords([]);
+    setQuizFinished(false);
+    setSelectedAnswer(null);
+    setIsCorrect(null);
+    setCurrentWord(null);
+    
+    setTimeout(() => {
+      generateQuestion();
+    }, 100);
+  };
+
   if (quizFinished) {
-    const percentage = Math.round((score.correct / score.total) * 100);
+    const percentage = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
     let message = '';
     let emoji = '';
     
@@ -136,7 +156,7 @@ export default function QuizPage() {
             <div className="grid md:grid-cols-3 gap-6">
               <div>
                 <div className="text-4xl font-bold text-indigo-600">{score.correct}</div>
-                <div className="text-gray-600 mt-2">To'g'ri javoblar</div>
+                <div className="text-gray-600 mt-2">To&apos;g&apos;ri javoblar</div>
               </div>
               <div>
                 <div className="text-4xl font-bold text-red-600">{score.total - score.correct}</div>
@@ -158,7 +178,7 @@ export default function QuizPage() {
             </button>
             <Link
               href="/"
-              className="bg-gray-200 text-gray-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-300 transition-all hover:scale-105"
+              className="bg-gray-200 text-gray-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-300 transition-all hover:scale-105 inline-block"
             >
               🏠 Bosh sahifa
             </Link>
@@ -176,19 +196,14 @@ export default function QuizPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-6">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6 mb-6">
           <h1 className="text-2xl md:text-3xl font-bold text-center mb-6 text-indigo-900">
             🎓 Ingliz tili Quiz
           </h1>
           
-          {/* Mode selector */}
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <button
-              onClick={() => {
-                setMode('en-uz');
-                restartQuiz();
-              }}
+              onClick={() => changeMode('en-uz')}
               className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all text-sm md:text-base ${
                 mode === 'en-uz'
                   ? 'bg-indigo-600 text-white shadow-lg scale-105'
@@ -198,10 +213,7 @@ export default function QuizPage() {
               🇬🇧 → 🇺🇿 Inglizcha → O&apos;zbekcha
             </button>
             <button
-              onClick={() => {
-                setMode('uz-en');
-                restartQuiz();
-              }}
+              onClick={() => changeMode('uz-en')}
               className={`flex-1 py-3 px-4 rounded-xl font-semibold transition-all text-sm md:text-base ${
                 mode === 'uz-en'
                   ? 'bg-indigo-600 text-white shadow-lg scale-105'
@@ -212,7 +224,6 @@ export default function QuizPage() {
             </button>
           </div>
 
-          {/* Progress */}
           <div className="flex justify-between items-center text-sm mb-2">
             <div className="text-gray-600">
               Savol: <span className="font-bold text-indigo-600">{score.total + 1}/{MAX_QUESTIONS}</span>
@@ -222,7 +233,6 @@ export default function QuizPage() {
             </div>
           </div>
 
-          {/* Progress bar */}
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-indigo-600 h-2 rounded-full transition-all"
@@ -231,7 +241,6 @@ export default function QuizPage() {
           </div>
         </div>
 
-        {/* Question Card */}
         <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6">
           <div className="text-center mb-8">
             <p className="text-sm text-gray-500 mb-2">
@@ -242,7 +251,6 @@ export default function QuizPage() {
             </h2>
           </div>
 
-          {/* Options */}
           <div className="grid grid-cols-1 gap-3">
             {options.map((option, index) => {
               const isSelected = selectedAnswer === option;
@@ -281,7 +289,6 @@ export default function QuizPage() {
             })}
           </div>
 
-          {/* Feedback */}
           {selectedAnswer && (
             <div className="mt-6 text-center">
               {isCorrect ? (
