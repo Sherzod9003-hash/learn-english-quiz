@@ -1,7 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Rasmlar uchun (Next.js 16 versiyasi)
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'ucigkrocoxeguubthnsc.supabase.co',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;
