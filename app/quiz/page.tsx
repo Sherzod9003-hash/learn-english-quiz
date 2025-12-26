@@ -2,32 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { supabase, Word } from '../lib/supabase';
 
 type QuizMode = 'en-uz' | 'uz-en';
-
-type Word = {
-  id: number;
-  en: string;
-  uz: string;
-};
-
-const WORDS: Word[] = [
-  { id: 1, en: 'Hello', uz: 'Salom' },
-  { id: 2, en: 'Thank you', uz: 'Rahmat' },
-  { id: 3, en: 'Goodbye', uz: 'Xayr' },
-  { id: 4, en: 'Please', uz: 'Iltimos' },
-  { id: 5, en: 'Yes', uz: 'Ha' },
-  { id: 6, en: 'No', uz: "Yo'q" },
-  { id: 7, en: 'Water', uz: 'Suv' },
-  { id: 8, en: 'Food', uz: 'Ovqat' },
-  { id: 9, en: 'House', uz: 'Uy' },
-  { id: 10, en: 'Car', uz: 'Mashina' },
-];
 
 const MAX_QUESTIONS = 10;
 
 export default function QuizPage() {
   const [mode, setMode] = useState<QuizMode>('en-uz');
+  const [words, setWords] = useState<Word[]>([]);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [options, setOptions] = useState<string[]>([]);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -36,39 +19,107 @@ export default function QuizPage() {
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [usedWords, setUsedWords] = useState<number[]>([]);
   const [quizFinished, setQuizFinished] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Database'dan so'zlarni yuklash
+  useEffect(() => {
+    async function fetchWords() {
+      console.log('🔍 Fetching words from Supabase...');
+      
+      try {
+        const { data, error } = await supabase
+          .from('words')
+          .select('*');
+        
+        console.log('📊 Data received:', data);
+        console.log('❌ Error:', error);
+        
+        if (error) {
+          console.error('Error fetching words:', error);
+          setError(error.message);
+          setLoading(false);
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          console.log('✅ Words loaded successfully:', data.length);
+          setWords(data);
+          setLoading(false);
+        } else {
+          console.warn('⚠️ No words found in database');
+          setError('Ma\'lumotlar bazasida so\'zlar topilmadi');
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error('💥 Unexpected error:', err);
+        setError('Kutilmagan xato yuz berdi');
+        setLoading(false);
+      }
+    }
+    
+    fetchWords();
+  }, []);
 
   const generateQuestion = () => {
+    console.log('🎲 Generating question...');
+    console.log('📚 Total words:', words.length);
+    console.log('✅ Used words:', usedWords.length);
+    console.log('🔄 Current mode:', mode);
+    
+    if (words.length === 0) {
+      console.warn('⚠️ No words available');
+      return;
+    }
+    
     setSelectedOption(null);
     setSelectedAnswer(null);
     setIsCorrect(null);
 
-    const availableWords = WORDS.filter(w => !usedWords.includes(w.id));
+    const availableWords = words.filter(w => !usedWords.includes(w.id));
+    console.log('📝 Available words:', availableWords.length);
     
     if (availableWords.length === 0) {
+      console.log('🏁 Quiz finished - no more words');
       setQuizFinished(true);
       return;
     }
 
     const word = availableWords[Math.floor(Math.random() * availableWords.length)];
+    console.log('🎯 Selected word:', word);
+    console.log('   EN:', word.en, '→ UZ:', word.uz);
+    
     setCurrentWord(word);
     setUsedWords([...usedWords, word.id]);
 
+    // mode === 'en-uz': Savol inglizcha, javob o'zbekcha
+    // mode === 'uz-en': Savol o'zbekcha, javob inglizcha
     const correctAnswer = mode === 'en-uz' ? word.uz : word.en;
-    const incorrectOptions = WORDS
+    console.log('✔️ Correct answer:', correctAnswer);
+    
+    const incorrectOptions = words
       .filter(w => w.id !== word.id)
       .map(w => mode === 'en-uz' ? w.uz : w.en)
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
 
     const allOptions = [correctAnswer, ...incorrectOptions].sort(() => Math.random() - 0.5);
+    console.log('📋 All options:', allOptions);
     setOptions(allOptions);
   };
 
   useEffect(() => {
-    if (!quizFinished && usedWords.length === 0) {
+    console.log('🔄 useEffect triggered');
+    console.log('Quiz finished:', quizFinished);
+    console.log('Used words length:', usedWords.length);
+    console.log('Words length:', words.length);
+    console.log('Loading:', loading);
+    
+    if (!quizFinished && !loading && usedWords.length === 0 && words.length > 0) {
+      console.log('▶️ Calling generateQuestion()');
       generateQuestion();
     }
-  }, [mode]);
+  }, [words, mode, loading]);
 
   const selectOption = (option: string) => {
     if (selectedAnswer) return;
@@ -117,26 +168,69 @@ export default function QuizPage() {
     setSelectedAnswer(null);
     setIsCorrect(null);
     setCurrentWord(null);
+    setOptions([]);
+    setLoading(true);
     
     setTimeout(() => {
-      generateQuestion();
+      setLoading(false);
     }, 100);
   };
 
   const changeMode = (newMode: QuizMode) => {
-    setMode(newMode);
-    setScore({ correct: 0, total: 0 });
-    setUsedWords([]);
-    setQuizFinished(false);
+    if (mode === newMode) return; // Agar bir xil rejim bo'lsa, hech narsa qilma
+    
+    console.log('🔄 Changing mode from', mode, 'to', newMode);
+    
+    // To'liq reset - State'larni tartib bilan tozalash
+    setCurrentWord(null);
+    setOptions([]);
     setSelectedOption(null);
     setSelectedAnswer(null);
     setIsCorrect(null);
-    setCurrentWord(null);
+    setScore({ correct: 0, total: 0 });
+    setUsedWords([]);
+    setQuizFinished(false);
     
+    // Rejimni o'zgartirish
+    setMode(newMode);
+    
+    // Loading holatini yoqish
+    setLoading(true);
+    
+    // Bir oz kutib, qayta yuklash
     setTimeout(() => {
-      generateQuestion();
-    }, 100);
+      setLoading(false);
+    }, 300);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-5xl mb-4">📚</div>
+          <div className="text-xl font-semibold text-indigo-900">Yuklanmoqda...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+          <div className="text-6xl mb-4">❌</div>
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Xatolik yuz berdi</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <Link
+            href="/"
+            className="inline-block bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all"
+          >
+            🏠 Bosh sahifaga qaytish
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (quizFinished) {
     const percentage = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
@@ -202,7 +296,16 @@ export default function QuizPage() {
     );
   }
 
-  if (!currentWord) return <div className="min-h-screen flex items-center justify-center">Yuklanmoqda...</div>;
+  if (!currentWord) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-5xl mb-4">⏳</div>
+          <div className="text-xl font-semibold text-indigo-900">Savol tayyorlanmoqda...</div>
+        </div>
+      </div>
+    );
+  }
 
   const question = mode === 'en-uz' ? currentWord.en : currentWord.uz;
   const correctAnswer = mode === 'en-uz' ? currentWord.uz : currentWord.en;
@@ -274,7 +377,6 @@ export default function QuizPage() {
               let className = 'w-full py-3 md:py-4 px-4 md:px-6 rounded-xl font-semibold text-sm md:text-lg transition-all border-2 ';
               
               if (selectedAnswer) {
-                // Javob berilgan
                 if (isFinalAnswer && isCorrect) {
                   className += 'bg-green-100 border-green-500 text-green-800';
                 } else if (isFinalAnswer && !isCorrect) {
@@ -285,10 +387,8 @@ export default function QuizPage() {
                   className += 'bg-gray-50 border-gray-200 opacity-50';
                 }
               } else if (isSelected) {
-                // Tanlangan, lekin hali tasdiqlanmagan
                 className += 'bg-yellow-100 border-yellow-500 text-yellow-900 scale-105';
               } else {
-                // Oddiy holat
                 className += 'bg-gray-50 border-gray-200 hover:bg-indigo-50 hover:border-indigo-300 cursor-pointer active:scale-98';
               }
 
@@ -312,7 +412,6 @@ export default function QuizPage() {
             })}
           </div>
 
-          {/* Tasdiqlash tugmalari */}
           {selectedOption && !selectedAnswer && (
             <div className="mt-4 md:mt-6 flex gap-3">
               <button
@@ -330,7 +429,6 @@ export default function QuizPage() {
             </div>
           )}
 
-          {/* Natija */}
           {selectedAnswer && (
             <div className="mt-4 md:mt-6 text-center">
               {isCorrect ? (
@@ -339,7 +437,7 @@ export default function QuizPage() {
                 </div>
               ) : (
                 <div className="text-red-600 font-semibold text-sm md:text-lg mb-3 md:mb-4">
-                  ❌ Noto&apos;g&apos;ri. To&apos;g&apos;ri: <span className="text-green-600">{correctAnswer}</span>
+                  ❌ Noto&apos;g&apos;ri. To&apos;g&apos;ri javob: <span className="text-green-600">{correctAnswer}</span>
                 </div>
               )}
               <button
